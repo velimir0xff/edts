@@ -17,6 +17,10 @@
 "installed (see edts-pkg.el) you can disable this check by setting\n"
 "`edts-inhibit-package-check' to a non-nil value.")))
 
+(eval-when-compile
+  (load-library "edts-start")
+  (compile "make libs"))
+
 ;; Prerequisites
 (require 'cl)
 (require 'woman)
