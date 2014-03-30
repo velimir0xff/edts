@@ -5,17 +5,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom edts-inhibit-package-check nil
-  "If non-nil, don't check whether EDTS was installed as a package.")
+  "If non-nil, don't check whether EDTS was installed as a package."
+  :group 'edts)
 
-(unless (or edts-inhibit-package-check
-            (and (fboundp 'package-installed-p)
-                 (package-installed-p 'edts)))
-  (error (concat
+(eval-after-load 'edts-start
+  (unless (or edts-inhibit-package-check
+              (and (fboundp 'package-installed-p)
+                   (package-installed-p 'edts)))
+    (error (concat
 "EDTS was not installed as a package. Please see the README for more\n"
 "information on how to install EDTS from MELPA.\n\n"
 "If you know what you're doing and have all the necessary dependencies\n"
 "installed (see edts-pkg.el) you can disable this check by setting\n"
-"`edts-inhibit-package-check' to a non-nil value.")))
+"`edts-inhibit-package-check' to a non-nil value."))))
 
 (eval-when-compile
   (load-library "edts-start")
