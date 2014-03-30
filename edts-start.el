@@ -20,7 +20,8 @@
 "`edts-inhibit-package-check' to a non-nil value."))))
 
 (eval-when-compile
-  (load-library "edts-start")
+  (unless (string= (f-base load-file-name) "edts-start")
+    (load-library "edts-start"))
   (compile "make libs"))
 
 ;; Prerequisites
@@ -71,12 +72,6 @@
                   "emacs"))))
   (require 'erlang))
 
-;; Add all libs to load-path
-(loop for  (name dirp . rest)
-      in   (directory-files-and-attributes edts-lib-directory nil "^[^.]")
-      when dirp
-      do   (add-to-list 'load-path (f-join edts-lib-directory name)))
-
 (defcustom edts-erlang-mode-regexps
   '("^\\.erlang$"
     "\\.app$"
@@ -106,10 +101,9 @@
 Must be preceded by `erlang-font-lock-keywords-macros' to work properly.")
 
 (defun edts-start-load (file)
-  "Load file"
+  "Wrapper for `load'."
   (load file nil edts-start-inhibit-load-msgs))
 
-;; EDTS
 (loop
  for  file
  in   (sort (directory-files edts-code-directory nil "\\.el$") #'string<)
