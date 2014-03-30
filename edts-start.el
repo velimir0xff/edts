@@ -4,6 +4,19 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defcustom edts-inhibit-package-check nil
+  "If non-nil, don't check whether EDTS was installed as a package.")
+
+(unless (or edts-inhibit-package-check
+            (and (fboundp 'package-installed-p)
+                 (package-installed-p 'edts)))
+  (error (concat
+"EDTS was not installed as a package. Please see the README for more\n"
+"information on how to install EDTS from MELPA.\n\n"
+"If you know what you're doing and have all the necessary dependencies\n"
+"installed (see edts-pkg.el) you can disable this check by setting\n"
+"`edts-inhibit-package-check' to a non-nil value.")))
+
 ;; Prerequisites
 (require 'cl)
 (require 'woman)
@@ -17,12 +30,6 @@
 (defconst edts-root-directory
   (file-name-directory (or (locate-library "edts-start") load-file-name))
   "EDTS root directory.")
-
-(dolist (pkg '(dash s f))
-  (unless (require pkg nil t)
-    (add-to-list 'load-path
-                 (format "%s/elisp/%s" edts-root-directory pkg))
-    (require pkg)))
 
 (defconst edts-code-directory
   (f-join edts-root-directory "elisp" "edts")
