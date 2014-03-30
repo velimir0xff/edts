@@ -4,6 +4,8 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(require 'f)
+
 (defcustom edts-inhibit-package-check nil
   "If non-nil, don't check whether EDTS was installed as a package."
   :group 'edts)
