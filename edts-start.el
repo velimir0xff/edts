@@ -22,7 +22,7 @@
 "`edts-inhibit-package-check' to a non-nil value."))))
 
 (eval-when-compile
-  (unless (string= (f-base load-file-name) "edts-start")
+  (unless load-file-name
     (load-library "edts-start"))
   (compile "make libs"))
 
