@@ -30,6 +30,7 @@
 (require 'f)
 
 (require 'edts-face)
+(require 'ferl)
 
 (defvar edts-code-issue-types '(edts-code-compile
                                 edts-code-eunit-failed)
@@ -62,6 +63,15 @@ issue severity (error, warning, etc).")
     (warning     . 902)
     (error       . 903))
   "The overlay priorities for compilation errors and warnings")
+
+(let ((paren-prio (or
+                   (and (boundp 'show-paren-priority) show-paren-priority)
+                   0)))
+  (setq show-paren-priority
+        (max paren-prio
+             (+ 1 (apply #'max
+                         (mapcar
+                          #'cdr edts-code-issue-overlay-priorities))))))
 
 (defconst edts-code-issue-fringe-bitmap
   (when (boundp 'fringe-bitmaps)
@@ -269,3 +279,5 @@ non-recursive."
           (goto-char (overlay-start overlay))
           (message (overlay-get overlay 'help-echo)))
         (error "EDTS: no more issues found"))))
+
+(provide 'edts-code)
