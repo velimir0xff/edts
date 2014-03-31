@@ -51,7 +51,6 @@
          (el-pattern        (f-join plugin-dir "*.el"))
          (el-files          (file-expand-wildcards el-pattern)))
     (add-to-list `load-path plugin-dir)
-    (mapc #'edts-start-load el-files)
     (require (intern elisp-plugin-name))
     (when (fboundp init-fun)
       (funcall init-fun))

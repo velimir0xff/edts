@@ -27,52 +27,48 @@
   (compile "make libs"))
 
 ;; Prerequisites
+(require 'auto-highlight-symbol)
+(require 'erlang)
+(require 'f)
 (require 'cl)
 (require 'woman)
 (require 'ert nil 'noerror)
 
-(defvar edts-start-inhibit-load-msgs t
-  "If non-nil, don't print messages when loading edts-packages.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Paths
-(defconst edts-root-directory
-  (file-name-directory (or (locate-library "edts-start") load-file-name))
-  "EDTS root directory.")
 
-(defconst edts-code-directory
-  (f-join edts-root-directory "elisp" "edts")
-  "Directory where edts code is located.")
+(eval-when-compile
+  (defconst edts-root-directory
+    (file-name-directory (or (locate-library "edts-start")
+                             load-file-name
+                             default-directory))
+    "EDTS root directory.")
 
-(defcustom edts-data-directory
-  (if (boundp 'user-emacs-directory)
-      (expand-file-name (concat user-emacs-directory "/edts"))
-    (expand-file-name "~/.emacs.d"))
-  "Where EDTS should save its data."
-  :group 'edts)
+  (defconst edts-code-directory
+    (f-join edts-root-directory "elisp" "edts")
+    "Directory where edts code is located.")
 
-(defconst edts-lib-directory
-  (f-join edts-root-directory "elisp")
-  "Directory where edts libraries are located.")
+  (defcustom edts-data-directory
+    (if (boundp 'user-emacs-directory)
+        (expand-file-name (concat user-emacs-directory "/edts"))
+      (expand-file-name "~/.emacs.d"))
+    "Where EDTS should save its data."
+    :group 'edts)
 
-(defconst edts-plugin-directory
-  (f-join edts-root-directory "plugins")
-  "Directory where edts plugins are located.")
+  (defconst edts-lib-directory
+    (f-join edts-root-directory "elisp")
+    "Directory where edts libraries are located.")
 
-(defconst edts-test-directory
-  (f-join edts-root-directory "test")
-  "Directory where edts test data are located.")
+  (defconst edts-plugin-directory
+    (f-join edts-root-directory "plugins")
+    "Directory where edts plugins are located.")
 
-(unless (require 'erlang nil 'noerror)
-  (add-to-list 'load-path
-               (car
-                (file-expand-wildcards
-                 (f-join
-                  (f-dirname (f-dirname (f-canonical (executable-find "erl"))))
-                  "lib"
-                  "tools*"
-                  "emacs"))))
-  (require 'erlang))
+  (defconst edts-test-directory
+    (f-join edts-root-directory "test")
+    "Directory where edts test data are located.")
+
+  (add-to-list 'load-path edts-code-directory))
+(require 'edts)
 
 (defcustom edts-erlang-mode-regexps
   '("^\\.erlang$"
@@ -102,19 +98,7 @@
   "Font lock keyword highlighting Erlang variables.
 Must be preceded by `erlang-font-lock-keywords-macros' to work properly.")
 
-(defun edts-start-load (file)
-  "Wrapper for `load'."
-  (load file nil edts-start-inhibit-load-msgs))
-
-(loop
- for  file
- in   (sort (directory-files edts-code-directory nil "\\.el$") #'string<)
- ;; avoid symlinks created as emacs backups
- when (not (file-symlink-p (f-join edts-code-directory file)))
- do   (edts-start-load file))
-
-;; External
-(require 'auto-highlight-symbol)
+;; EDTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; autohighlight-symbol-mode setup for EDTS
@@ -221,14 +205,6 @@ consider EDTS."
   ;; Ensure matching parentheses are visible above edts-faces.
   (when (boundp 'show-paren-priority)
     (make-local-variable 'show-paren-priority))
-  (let ((paren-prio (or
-                     (and (boundp 'show-paren-priority) show-paren-priority)
-                     0)))
-    (setq show-paren-priority
-          (max paren-prio
-               (+ 1 (apply #'max
-                           (mapcar
-                            #'cdr edts-code-issue-overlay-priorities))))))
 
   ;; Auto-completion
   (edts-complete-setup)
