@@ -31,7 +31,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Paths
 
-(eval-when-compile
+(eval-and-compile
   (defconst edts-root-directory
     (file-name-directory (or (locate-library "edts-start")
                              load-file-name
@@ -63,10 +63,9 @@
 
   (add-to-list 'load-path edts-code-directory)
   (require 'edts-plugin)
-  (eval-when-compile
-    (mapc #'(lambda (p) (add-to-list 'load-path
-                                     (f-join edts-plugin-directory p)))
-          (edts-plugin-names))))
+  (mapc #'(lambda (p) (add-to-list 'load-path
+                                   (f-join edts-plugin-directory p)))
+        (edts-plugin-names)))
 (require 'edts)
 
 (defcustom edts-erlang-mode-regexps
