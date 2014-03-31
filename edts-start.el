@@ -4,8 +4,6 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'f)
-
 (defcustom edts-inhibit-package-check nil
   "If non-nil, don't check whether EDTS was installed as a package."
   :group 'edts)
@@ -22,8 +20,6 @@
 "`edts-inhibit-package-check' to a non-nil value."))))
 
 (eval-when-compile
-  (unless load-file-name
-    (load-library "edts-start"))
   (compile "make libs"))
 
 ;; Prerequisites
