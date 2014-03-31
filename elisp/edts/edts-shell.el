@@ -24,6 +24,8 @@
 
 (require 'cl)
 
+(require 'edts-complete)
+
 (defvar edts-shell-next-shell-id 0
   "The id to give the next edts-erl shell started.")
 
@@ -317,3 +319,5 @@ default directory if it exists, otherwise nil."
       (set-process-query-on-exit-flag (get-buffer-process buffer) nil)
       (kill-process (get-buffer-process buffer))
       (kill-buffer buffer))))
+
+(provide 'edts-shell)

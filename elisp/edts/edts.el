@@ -22,9 +22,18 @@
 ;; You should have received a copy of the GNU Lesser General Public License
 ;; along with EDTS. If not, see <http://www.gnu.org/licenses/>.
 
+(require 'auto-highlight-symbol)
 (require 'f)
 
+(require 'edts-doc)
+(require 'edts-complete)
+(require 'edts-face)
 (require 'edts-event)
+(require 'edts-log)
+(require 'edts-man)
+(require 'edts-plugin)
+(require 'edts-rest)
+(require 'edts-shell)
 
 (defcustom edts-erl-command
   (or (executable-find "erl")

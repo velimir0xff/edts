@@ -30,6 +30,8 @@
 (require 'url)
 (require 'json)
 
+(require 'edts-log)
+
 (defconst edts-rest-host "0"
   "The host where the edts erlang node is running.")
 
@@ -289,3 +291,4 @@ the issue and make this hack redundant."
     (should (equal "foo=bar,baz"
             (edts-rest-encode-arg '("foo" . ("bar" "baz")))))))
 
+(provide 'edts-rest)
