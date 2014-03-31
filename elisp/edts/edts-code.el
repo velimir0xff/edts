@@ -26,6 +26,7 @@
 ;; All code for compilation and in-buffer highlighting is a rewrite of work
 ;; done by Sebastian Weddmark Olsson.
 
+(require 'dash)
 (require 'eproject-extras)
 (require 'f)
 
@@ -170,7 +171,7 @@ buffer's project."
   "Return a list of all edts buffers visiting a file in DIR,
 non-recursive."
   (let ((dir (directory-file-name dir)))
-    (reduce
+    (-reduce-from
      #'(lambda (acc buf)
          (with-current-buffer buf
            (if (and (buffer-live-p buf)
@@ -180,8 +181,8 @@ non-recursive."
                      (cons module acc)
                    acc))
              acc)))
-     (buffer-list)
-     :initial-value nil)))
+     nil
+     (buffer-list))))
 
 (defun edts-code-display-error-overlays (type errors)
   "Displays overlays for ERRORS in current buffer."

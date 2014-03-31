@@ -30,7 +30,6 @@
 (require 'auto-highlight-symbol)
 (require 'erlang)
 (require 'f)
-(require 'cl)
 (require 'woman)
 (require 'ert nil 'noerror)
 
@@ -182,9 +181,8 @@ consider EDTS."
   (add-hook 'after-save-hook 'edts-code-compile-and-display t t)
 
   ;; Auto-activate erlang mode for some additional extensions.
-  (mapcar
-   #'(lambda(re) (add-to-list 'auto-mode-alist (cons re 'erlang-mode)))
-   edts-erlang-mode-regexps)
+  (mapc #'(lambda(re) (add-to-list 'auto-mode-alist (cons re 'erlang-mode)))
+        edts-erlang-mode-regexps)
 
   (auto-highlight-symbol-mode t)
   (add-to-list 'ahs-exclude erlang-auto-highlight-exclusions)

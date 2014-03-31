@@ -22,10 +22,10 @@
 ;; You should have received a copy of the GNU Lesser General Public License
 ;; along with EDTS. If not, see <http://www.gnu.org/licenses/>.
 
-(require 'cl)
 (require 'eproject)
 (require 'eproject-extras)
 (require 'f)
+(require 'dash)
 
 (require 'edts-shell)
 
@@ -60,8 +60,8 @@ Example:
                                           :node-sname \"my-project-dev\"))"
   (interactive)
   (let ((exp-root (file-name-as-directory (expand-file-name root)))
-        (invalid (delete-if #'edts-project--config-prop-p
-                            (edts-project--plist-keys properties))))
+        (invalid (-remove #'edts-project--config-prop-p
+                          (edts-project--plist-keys properties))))
     (when invalid
       (error "Invalid configuration properties:"))
     (when (eproject-attribute :name root)
@@ -150,6 +150,7 @@ Example:
     (let ((res (edts-project-otp-selector-path file)))
       res)))
 
+(declare-function look-for "eproject.el")
 (defun edts-project-otp-selector-path (file)
     (let ((path (look-for "bin/erl")))
       (when (and path (not (or (string= (directory-file-name path) "/bin") ;; ?
@@ -381,7 +382,7 @@ they are both expanded and converts it into a plist."
   "Returns the entry from `edts-projects' whose `root' equal ROOT after
 they are both expanded."
   (let ((exp-root (file-name-as-directory (expand-file-name root))))
-    (find-if
+    (-first
      #'(lambda (project)
          (f-same? (file-name-as-directory
                    (expand-file-name
@@ -422,7 +423,7 @@ projects and there is no previous .edts-file."
 
 (defun edts-project--file-old-project (file)
   "Return the entry in `edts-projects' that FILE belongs to, if any."
-  (find-if
+  (-first
    #'(lambda (p) (f-descendant-of? file (cdr (assoc 'root p))))
    edts-projects))
 
@@ -456,17 +457,17 @@ projects and there is no previous .edts-file."
 (defun edts-project-buffer-list (project-root &optional predicates)
   "Given PROJECT-ROOT, return a list of the corresponding projects open
 buffers, for which all PREDICATES hold true."
-  (reduce
+  (-reduce-from
    #'(lambda (acc buf)
        (with-current-buffer buf
          (if (and (buffer-live-p buf)
                   eproject-mode
                   (f-same? project-root (eproject-root))
-                  (every #'(lambda (pred) (funcall pred)) predicates))
+                  (-all? #'(lambda (pred) (funcall pred)) predicates))
              (cons buf acc)
            acc)))
-   (buffer-list)
-   :initial-value nil))
+   nil
+   (buffer-list)))
 
 
 (defun edts-project-buffer-map (project-root function)
