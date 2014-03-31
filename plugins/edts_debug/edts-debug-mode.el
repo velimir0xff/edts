@@ -72,6 +72,7 @@
 
       ;; Move back to the primary debugger window
       (select-window (frame-first-window)))))
+(setq edts-debug-attach-function 'edts-debug-mode-attach)
 
 (defun edts-debug-mode-list-variable-bindings ()
   (switch-to-buffer (get-buffer-create "EDTS Debug Variable Bindings"))
@@ -240,15 +241,5 @@ on `edts-debug-node'."
   "Node-down hook for edts-debug-mode."
   (edts-debug-mode-quit))
 (add-hook 'edts-server-down-hook 'edts-debug-mode-server-down-hook)
-
-(defun edts-debug-mode-new-status-hook (node pid status)
-  "New status hook for edts-debug-mode."
-  (when (and (eq status 'break)
-             (not edts-debug-pid)
-             edts-debug-auto-attach)
-    (setq edts-debug-node node)
-    (setq edts-debug-pid pid)
-    (edts-debug-mode-attach)))
-(add-hook 'edts-debug-new-status-hook 'edts-debug-mode-new-status-hook)
 
 (provide 'edts-debug-mode)

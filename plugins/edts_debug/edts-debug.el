@@ -19,7 +19,9 @@
 
 (require 'dash)
 
+(require 'edts-log)
 (require 'edts-mode)
+(require 'edts-plugin)
 
 (defface edts-debug-process-location-face
   '((((class color) (background dark)) (:background "midnight blue"))
@@ -72,6 +74,10 @@ request should always be outstanding if we are not already attached.")
 (defvar edts-debug-overlay-arrow-position nil)
 (add-to-list 'overlay-arrow-variable-list
              'edts-debug-overlay-arrow-position)
+
+(defvar edts-debug-attach-function nil
+  "Function called to attach to a debugged process. Set by
+`edts-debug-mode'.")
 
 (defun edts-debug-init ()
   "Initialize edts-debug."
@@ -191,15 +197,23 @@ modules, breakpoints and debugged processes).")
                      (edts-debug-sync-breakpoint-alist)))
     (new_process   (edts-debug-sync-processes-alist))
     (new_status    (edts-debug-sync-processes-alist)
-                   (let ((pid    (cdr (assoc 'pid info)))
-                         (status (intern (cdr (assoc 'status info)))))
-                     (run-hook-with-args 'edts-debug-new-status-hook
-                                         node
-                                         pid
-                                         status))
                    (edts-debug-handle-new-status node info)))
   (run-hooks 'edts-debug-after-sync-hook))
 (edts-event-register-handler 'edts-debug-event-handler 'edts_debug)
+
+(defun edts-debug-handle-new-status (node info)
+  (let ((pid (cdr (assoc 'pid info))))
+    (when (and (eq (intern (cdr (assoc 'status info))) 'break)
+               (not edts-debug-pid)
+               edts-debug-auto-attach)
+      (edts-debug-attach node pid))))
+
+(defun edts-debug-attach (node pid)
+  (unless (equal (edts-debug-process-info node pid 'status) "break")
+    (error "Process %s on %s is not in a 'break' state" pid node))
+  (setq edts-debug-node node)
+  (setq edts-debug-pid pid)
+  (funcall edts-debug-attach-function))
 
 (defun edts-debug-update-buffers ()
   (dolist (buf (buffer-list))
@@ -211,7 +225,6 @@ modules, breakpoints and debugged processes).")
             (edts-debug-update-buffer-mode-line node module)
             (edts-debug-update-buffer-breakpoints node module)))))))
 (add-hook 'edts-debug-after-sync-hook 'edts-debug-update-buffers)
-
 
 (defun edts-debug-sync-interpreted-alist ()
   "Synchronizes `edts-debug-interpreted-alist'."
