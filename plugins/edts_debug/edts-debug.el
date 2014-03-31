@@ -17,9 +17,9 @@
 ;;
 ;; Debugger interaction code for EDTS
 
-;; Window configuration to be restored when quitting debug mode
+(require 'dash)
 
-(require 'cl)
+(require 'edts-mode)
 
 (defface edts-debug-process-location-face
   '((((class color) (background dark)) (:background "midnight blue"))
@@ -91,8 +91,6 @@ request should always be outstanding if we are not already attached.")
 
 (defun edts-debug-node-down-hook (node)
   "Hook to run after node initialization."
-  (when (string= node edts-debug-node)
-    (edts-debug-mode-quit))
   (let ((interpreted (assoc node edts-debug-interpreted-alist))
         (breakpoints (assoc node edts-debug-breakpoint-alist))
         (processes   (assoc node edts-debug-processes-alist)))
@@ -106,7 +104,6 @@ request should always be outstanding if we are not already attached.")
 
 (defun edts-debug-server-down-hook ()
   "Hook to run after node initialization."
-  (edts-debug-mode-quit)
   (setq edts-debug-interpreted-alist nil)
   (setq edts-debug-breakpoint-alist nil)
   (setq edts-debug-processes-alist nil)
@@ -143,6 +140,9 @@ of strings.")
 (defvar edts-debug-after-sync-hook nil
   "Hook to run after synchronizing debug information (interpreted
 modules, breakpoints and debugged processes).")
+
+(defvar edts-debug-new-status-hook nil
+  "Hook for status changes on debugge node.")
 
 (defun edts-debug-sync ()
   "Synchronize edts-debug data."
@@ -191,16 +191,15 @@ modules, breakpoints and debugged processes).")
                      (edts-debug-sync-breakpoint-alist)))
     (new_process   (edts-debug-sync-processes-alist))
     (new_status    (edts-debug-sync-processes-alist)
+                   (let ((pid    (cdr (assoc 'pid info)))
+                         (status (intern (cdr (assoc 'status info)))))
+                     (run-hook-with-args 'edts-debug-new-status-hook
+                                         node
+                                         pid
+                                         status))
                    (edts-debug-handle-new-status node info)))
   (run-hooks 'edts-debug-after-sync-hook))
 (edts-event-register-handler 'edts-debug-event-handler 'edts_debug)
-
-(defun edts-debug-handle-new-status (node info)
-  (let ((pid (cdr (assoc 'pid info))))
-    (when (and (eq (intern (cdr (assoc 'status info))) 'break)
-               (not edts-debug-pid)
-               edts-debug-auto-attach)
-      (edts-debug-attach node pid))))
 
 (defun edts-debug-update-buffers ()
   (dolist (buf (buffer-list))
@@ -424,13 +423,6 @@ indentation and lines broken at MAX-COL."
                       ("indent" ,(number-to-string indent))
                       ("max_column" ,(number-to-string max-col)))))
 
-(defun edts-debug-attach (node pid)
-  (unless (equal (edts-debug-process-info node pid 'status) "break")
-    (error "Process %s on %s is not in a 'break' state" pid node))
-  (setq edts-debug-node node)
-  (setq edts-debug-pid pid)
-  (edts-debug-mode-attach))
-
 (defun edts-debug-detach ()
   (setq edts-debug-node nil)
   (setq edts-debug-pid nil))
@@ -439,48 +431,10 @@ indentation and lines broken at MAX-COL."
   (let* ((node  (or node edts-debug-node))
          (pid   (or pid edts-debug-pid))
          (procs (cdr (assoc node edts-debug-processes-alist)))
-         (info  (find-if #'(lambda (p) (string= (cdr (assoc 'pid p)) pid))
+         (info  (-first #'(lambda (p) (string= (cdr (assoc 'pid p)) pid))
                 procs)))
     (if prop
         (cdr (assoc prop info))
       info)))
-
-(when (member 'ert features)
-
-  (require 'edts-test)
-  (edts-test-add-suite
-   ;; Name
-   edts-debug-suite
-   ;; Setup
-   (lambda ()
-     (let ((async-node-init edts-async-node-init))
-       (setq edts-async-node-init nil)
-       (setq edts-event-inhibit t)
-       (edts-rest-force-sync t)
-       (edts-test-pre-cleanup-all-buffers)
-       (edts-test-setup-project edts-test-project1-directory
-                                "test"
-                                nil)
-       `((async-node-init . ,async-node-init))))
-
-   ;; Teardown
-   (lambda (setup-config)
-     (setq edts-async-node-init (cdr (assoc 'async-node-init setup-config)))
-     (edts-rest-force-sync nil)
-     (setq edts-event-inhibit nil)
-     (edts-test-post-cleanup-all-buffers)
-     (edts-test-teardown-project edts-test-project1-directory)))
-
-  (edts-test-case edts-debug-suite edts-debug-basic-test ()
-    "Basic debugger setup test"
-    (let ((eproject-prefer-subproject t))
-      (find-file (car (edts-test-project1-modules)))
-
-      (should-not (edts-debug-interpretedp))
-      (edts-debug-interpret nil nil 't)
-      (should (edts-debug-interpretedp))
-      (should-not (edts-debug-module-breakpoints))
-      (edts-debug-break nil nil nil t)
-      (should (eq 1 (length (edts-debug-breakpoints)))))))
 
 (provide 'edts-debug)

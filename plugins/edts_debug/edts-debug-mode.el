@@ -19,6 +19,12 @@
 
 (require 'f)
 
+(require 'edts)
+(require 'edts-debug)
+(require 'edts-debug-list-breakpoint-mode)
+(require 'edts-debug-list-interpreted-mode)
+(require 'edts-debug-list-processes-mode)
+
 (defvar edts-debug-mode-pre-frame-configuration nil
   "The frame configuration before entering edts-debug-mode")
 
@@ -223,5 +229,26 @@ on `edts-debug-node'."
 on `edts-debug-node'."
   (interactive)
   (edts-debug-command edts-debug-node edts-debug-pid cmd))
+
+(defun edts-debug-mode-node-down-hook (node)
+  "Node-down hook for edts-debug."
+  (when (string= node edts-debug-node)
+    (edts-debug-mode-quit)))
+(add-hook 'edts-node-down-hook 'edts-debug-mode-node-down-hook)
+
+(defun edts-debug-mode-server-down-hook (node)
+  "Node-down hook for edts-debug-mode."
+  (edts-debug-mode-quit))
+(add-hook 'edts-server-down-hook 'edts-debug-mode-server-down-hook)
+
+(defun edts-debug-mode-new-status-hook (node pid status)
+  "New status hook for edts-debug-mode."
+  (when (and (eq status 'break)
+             (not edts-debug-pid)
+             edts-debug-auto-attach)
+    (setq edts-debug-node node)
+    (setq edts-debug-pid pid)
+    (edts-debug-mode-attach)))
+(add-hook 'edts-debug-new-status-hook 'edts-debug-mode-new-status-hook)
 
 (provide 'edts-debug-mode)

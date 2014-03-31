@@ -19,6 +19,9 @@
 
 ;; Window configuration to be restored when quitting debug mode
 
+(require 'edts-debug)
+(require 'edts-navigate)
+
 (defconst edts-debug-list-breakpoint-buffer
   "*EDTS Breakpoints*"
   "Name of buffer where to display the list of breakpoints")
@@ -134,6 +137,5 @@ call `switch-to-buffer'."
 
 (defun edts-debug--get-module-source (node module)
   (cdr (assoc 'source (edts-get-module-info node module 'basic))))
-
 
 (provide 'edts-debug-list-breakpoint-mode)
