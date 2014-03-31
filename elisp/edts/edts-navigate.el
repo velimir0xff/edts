@@ -307,3 +307,4 @@ function and arity."
          (str (format "%s:%s/%s" module function arity)))
     (popup-make-item str :value item)))
 
+(provide 'edts-navigate)

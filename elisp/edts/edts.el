@@ -31,6 +31,7 @@
 (require 'edts-event)
 (require 'edts-log)
 (require 'edts-man)
+(require 'edts-mode)
 (require 'edts-plugin)
 (require 'edts-rest)
 (require 'edts-shell)
