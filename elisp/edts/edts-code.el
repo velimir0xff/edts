@@ -167,20 +167,22 @@ buffer's project."
        'edts-code-eunit-failed failed)
       (edts-face-update-buffer-mode-line (edts-code-buffer-status)))))
 
-(defun edts-code--modules-in-dir (dir)
+(defun edts-code-open-modules (dir)
+  "Return a list of all modules in DIR being visited by edts buffers,
+non-recursive."
+  (mapcar 'ferl-get-module (edts-code-directory-module-buffers dir)))
+
+(defun edts-code-directory-module-buffers (dir)
   "Return a list of all edts buffers visiting a file in DIR,
 non-recursive."
   (let ((dir (directory-file-name dir)))
-    (-reduce-from
-     #'(lambda (acc buf)
-         (with-current-buffer buf
-           (if (and (buffer-live-p buf)
-                    (string= dir (f-dirname (buffer-file-name))))
-               (let ((module (ferl-get-module buf)))
-                 (if module
-                     (cons module acc)
-                   acc))
-             acc)))
+    (--reduce-from
+     (with-current-buffer it
+       (if (and (buffer-live-p it)
+                (string= dir (f-dirname (buffer-file-name)))
+                (ferl-get-module it))
+           (cons it acc)
+         acc))
      nil
      (buffer-list))))
 

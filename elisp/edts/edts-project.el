@@ -457,16 +457,13 @@ projects and there is no previous .edts-file."
 (defun edts-project-buffer-list (project-root &optional predicates)
   "Given PROJECT-ROOT, return a list of the corresponding projects open
 buffers, for which all PREDICATES hold true."
-  (-reduce-from
-   #'(lambda (acc buf)
+  (-filter
+   #'(lambda (buf)
        (with-current-buffer buf
-         (if (and (buffer-live-p buf)
-                  eproject-mode
-                  (f-same? project-root (eproject-root))
-                  (-all? #'(lambda (pred) (funcall pred)) predicates))
-             (cons buf acc)
-           acc)))
-   nil
+         (and (buffer-live-p buf)
+              eproject-mode
+              (f-same? project-root (eproject-root))
+              (-all? #'(lambda (pred) (funcall pred)) predicates))))
    (buffer-list)))
 
 
